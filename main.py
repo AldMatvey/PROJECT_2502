@@ -1,5 +1,6 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
 
+
 class Slot:
 
     def __init__(self, size, color, x, y, mean=0):
@@ -58,17 +59,13 @@ class Slots:
 
 
 class Board(QtWidgets.QFrame):
-    SPEED = 80
-
-    HEIGHTINBLOCKS = 40
-    WIDTHINBLOCKS = 60
 
     def __init__(self, parent):
         super(Board, self).__init__(parent)
 
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
-        self.snake = Slots()
+        self.slots = Slots(16, 800)
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
 
@@ -76,47 +73,33 @@ class Board(QtWidgets.QFrame):
 
         rect = self.contentsRect()
 
-        boardtop = rect.bottom() - self.frameGeometry().height()
+        board_top = rect.bottom() - self.frameGeometry().height()
 
-        for cord in self.snake.body:
-            self.drawrect(painter, rect.left() + cord[0] * self.block_width(),
-                          boardtop + cord[1] * self.block_height(), self.snake.color)
+        for slot in self.slots.slots:
+            self.draw_rect(painter, rect.left() + slot.x * slot.size,
+                           board_top + slot.y * slot.size, slot.color, slot.size)
 
-    def drawrect(self, painter, x, y, color):
-        painter.fillRect(x, y, self.block_width() - 2, self.block_height() - 2, color)
-
-    def timerEvent(self, a0: QtCore.QTimerEvent) -> None:
-
-        if a0.timerId() == self.timer.timerId():
-            self.snake.move()
-            self.update()
+    def draw_rect(self, painter, x, y, color, size):
+        painter.fillRect(x, y, size - 2, size - 2, color)
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
 
         key = a0.key()
 
         if key == QtCore.Qt.Key.Key_Left:
-            if self.snake.direction != 'right':
-                self.snake.direction = 'left'
+            pass
 
         if key == QtCore.Qt.Key.Key_Right:
-            if self.snake.direction != 'left':
-                self.snake.direction = 'right'
+            pass
 
         if key == QtCore.Qt.Key.Key_Up:
-            if self.snake.direction != 'down':
-                self.snake.direction = 'up'
+            pass
 
         if key == QtCore.Qt.Key.Key_Down:
-            if self.snake.direction != 'up':
-                self.snake.direction = 'down'
+            pass
 
-
-    def is_dead(self):
+    def is_game_over(self):
         pass
-
-    def start(self):
-        self.timer.start(Board.SPEED, self)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -126,7 +109,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board = Board(self)
         self.setCentralWidget(self.board)
         self.setGeometry(100, 100, 600, 400)
-        self.board.start()
 
         self.show()
 
