@@ -1,3 +1,5 @@
+import random
+
 from PyQt5 import QtGui, QtCore, QtWidgets
 
 
@@ -32,30 +34,29 @@ class Slots:
         }
 
         self.count = count
-        self.slots = [Slot(size // count, self.brushes[0], i // self.count, i % self.count)
+        self.size = size
+        self.slots = [Slot(self.size // self.count, self.brushes[0], i // self.count, i % self.count)
                       for i in range(self.count ** 2)]
         self.empty_slots = [Slot(size // count, self.brushes[0], i // self.count, i % self.count)
                             for i in range(self.count ** 2)]
-        self.size = size
+        self.add_slot()
+        self.add_slot()
+
+    def add_slot(self):
+        if len(self.empty_slots) == 0:
+            return
+        if len(self.empty_slots) == 1:
+            num = 0
+        else:
+            num = random.randrange(0, len(self.empty_slots) - 1)
+        for i in range(len(self.slots)):
+            if self.slots[i].x == self.empty_slots[num].x and self.slots[i].y == self.empty_slots[num].y:
+                self.slots[i] = Slot(self.size // self.count, self.brushes[2],
+                                     self.empty_slots[num].x, self.empty_slots[num].y)
+        self.empty_slots.pop(num)
 
     def is_game_over(self):
         pass
-
-    def move(self):
-
-        if self.direction == 'left':
-            pass
-
-        if self.direction == 'right':
-            pass
-
-        if self.direction == 'up':
-            pass
-
-        if self.direction == 'down':
-            pass
-
-        self.addSlot()
 
 
 class Board(QtWidgets.QFrame):
@@ -65,7 +66,7 @@ class Board(QtWidgets.QFrame):
 
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
-        self.slots = Slots(16, 800)
+        self.slots = Slots(4, 200)
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
 
@@ -86,17 +87,20 @@ class Board(QtWidgets.QFrame):
 
         key = a0.key()
 
-        if key == QtCore.Qt.Key.Key_Left:
+        if key == QtCore.Qt.Key_Left:
             pass
 
-        if key == QtCore.Qt.Key.Key_Right:
+        if key == QtCore.Qt.Key_Right:
             pass
 
-        if key == QtCore.Qt.Key.Key_Up:
+        if key == QtCore.Qt.Key_Up:
             pass
 
-        if key == QtCore.Qt.Key.Key_Down:
+        if key == QtCore.Qt.Key_Down:
             pass
+
+        self.slots.add_slot()
+        self.update()
 
     def is_game_over(self):
         pass
