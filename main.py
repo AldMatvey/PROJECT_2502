@@ -1,7 +1,9 @@
 import random
 
 from PyQt5 import QtGui, QtCore, QtWidgets
-
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QLabel, QApplication)
+from PyQt5.QtGui import QPixmap
 
 class Slot:
 
@@ -14,30 +16,29 @@ class Slot:
 
 
 class Slots:
-
     def __init__(self, count, size):
 
         self.brushes = {
-            0: QtGui.QBrush(QtGui.QColor(0xcdc1b4)),
-            1: QtGui.QBrush(QtGui.QColor(0x999999)),
-            2: QtGui.QBrush(QtGui.QColor(0xeee4da)),
-            4: QtGui.QBrush(QtGui.QColor(0xede0c8)),
-            8: QtGui.QBrush(QtGui.QColor(0xf2b179)),
-            16: QtGui.QBrush(QtGui.QColor(0xf59563)),
-            32: QtGui.QBrush(QtGui.QColor(0xf67c5f)),
-            64: QtGui.QBrush(QtGui.QColor(0xf65e3b)),
-            128: QtGui.QBrush(QtGui.QColor(0xedcf72)),
-            256: QtGui.QBrush(QtGui.QColor(0xedcc61)),
-            512: QtGui.QBrush(QtGui.QColor(0xedc850)),
-            1024: QtGui.QBrush(QtGui.QColor(0xedc53f)),
-            2048: QtGui.QBrush(QtGui.QColor(0xedc22e)),
+            0: QtGui.QImage('Pics/empty.jpg'),
+            1: QtGui.QImage('Pics/obeme.jpeg'),
+            2: QtGui.QImage('Pics/2(another kasatkin).png'),
+            4: QtGui.QImage('Pics/4(spider_man).png'),
+            8: QtGui.QImage('Pics/8(kasatkin).png'),
+            16: QtGui.QImage('Pics/16(kozel).png'),
+            32: QtGui.QImage('Pics/32(mish).png'),
+            64: QtGui.QImage('Pics/64(chich).png'),
+            128: QtGui.QImage('Pics/128(bour).png'),
+            256: QtGui.QImage('Pics/256(stremich).png'),
+            512: QtGui.QImage('Pics/512(koval).png'),
+            1024: QtGui.QImage('Pics/1024(zhivotov).png'),
+            2048: QtGui.QImage('Pics/obeme.jpeg'),
         }
 
         self.count = count
         self.size = size
-        self.slots = [Slot(self.size // self.count, self.brushes[0], i // self.count, i % self.count)
+        self.slots = [Slot(self.size // self.count, self.brushes[0], i % self.count, i // self.count)
                       for i in range(self.count ** 2)]
-        self.empty_slots = [Slot(size // count, self.brushes[0], i // self.count, i % self.count)
+        self.empty_slots = [Slot(size // count, self.brushes[0], i % self.count, i // self.count)
                             for i in range(self.count ** 2)]
         self.add_slot()
         self.add_slot()
@@ -52,7 +53,7 @@ class Slots:
         for i in range(len(self.slots)):
             if self.slots[i].x == self.empty_slots[num].x and self.slots[i].y == self.empty_slots[num].y:
                 self.slots[i] = Slot(self.size // self.count, self.brushes[2],
-                                     self.empty_slots[num].x, self.empty_slots[num].y)
+                                     self.empty_slots[num].x, self.empty_slots[num].y, mean = 2)
         self.empty_slots.pop(num)
 
     def is_game_over(self):
@@ -66,7 +67,7 @@ class Board(QtWidgets.QFrame):
 
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
-        self.slots = Slots(4, 200)
+        self.slots = Slots(4, 900)
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
 
@@ -80,30 +81,241 @@ class Board(QtWidgets.QFrame):
             self.draw_rect(painter, rect.left() + slot.x * slot.size,
                            board_top + slot.y * slot.size, slot.color, slot.size)
 
+    def MakeFlags(self, size):
+        flags_table = []
+        for i in range(size):
+            flags_table.append([True] * size)
+        return flags_table
+
+    def DisplayField(self, field):
+        size = len(field)
+        for i in range(size):
+            for j in range(size):
+                if field[i][j] // 10 == 0:
+                    print(field[i][j], end="    ")
+                elif field[i][j] // 100 == 0:
+                    print(field[i][j], end="   ")
+                elif field[i][j] // 1000 == 0:
+                    print(field[i][j], end="  ")
+                else:
+                    print(field[i][j], end=" ")
+            print()
+
+    def MoveUp(self):
+        size = 4
+        flag = True
+        flags = self.MakeFlags(size)
+        while (flag):
+            flag = False
+            for i in range(size, size ** 2):
+                if self.slots.slots[i].mean == self.slots.slots[i - size].mean and self.slots.slots[i].mean != 0 and flags[i // size - 1][i % size] and flags[i // size][i % size]:
+                    flag = True
+                    self.slots.slots[i - size].mean = 2 * self.slots.slots[i - size].mean
+                    self.slots.slots[i - size].color = self.slots.brushes[self.slots.slots[i - size].mean]
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size**2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+                    flags[i // size][i % size] = False
+                    flags[i//size - 1][i % size] = False
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i - size].mean == 0:
+                    flag = True
+                    self.slots.slots[ i - size].color = self.slots.slots[i].color
+                    self.slots.slots[i - size].mean = self.slots.slots[i].mean
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size ** 2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+
+
+    def PossibleUp(self):
+        flag = True
+        size = 4
+        while (flag):
+            flag = False
+            for i in range(size, size ** 2):
+                if self.slots.slots[i].mean == self.slots.slots[i - size].mean and self.slots.slots[i].mean != 0:
+                    return True
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i - size].mean == 0:
+                    return True
+        return False
+
+    def MoveLeft(self):
+        size = 4
+        flag = True
+        flags = self.MakeFlags(size)
+        while (flag):
+            flag = False
+            for i in range(size ** 2):
+                if i % 4 == 0:
+                    continue
+                if self.slots.slots[i].mean == self.slots.slots[i - 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i - 1) % size] and flags[i // size][i % size]:
+                    flag = True
+                    self.slots.slots[i - 1].mean = 2 * self.slots.slots[i - 1].mean
+                    self.slots.slots[i - 1].color = self.slots.brushes[self.slots.slots[i - 1].mean]
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size ** 2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+                    flags[i // size][i % size] = False
+                    flags[(i - 1) // size][(i - 1) % size] = False
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i - 1].mean == 0:
+                    flag = True
+                    self.slots.slots[i - 1].color = self.slots.slots[i].color
+                    self.slots.slots[i - 1].mean = self.slots.slots[i].mean
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size ** 2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+
+    def PossibleLeft(self):
+        size = 4
+        flag = True
+        while (flag):
+            flag = False
+            for i in range(size ** 2 - 1, -1, -1):
+                if i % 4 == 0:
+                    continue
+                if self.slots.slots[i].mean == self.slots.slots[i - 1].mean and self.slots.slots[i].mean != 0:
+                    return True
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i - 1].mean == 0:
+                    return True
+        return False
+
+    def MoveDown(self):
+        size = 4
+        flag = True
+        flags = self.MakeFlags(size)
+        while (flag):
+            flag = False
+            for i in range(size ** 2 - size - 1, -1, -1):
+                if self.slots.slots[i].mean == self.slots.slots[i + size].mean and self.slots.slots[i].mean != 0 and flags[i // size + 1][i % size] and flags[i // size][i % size]:
+                    flag = True
+                    self.slots.slots[i + size].mean = 2 * self.slots.slots[i + size].mean
+                    self.slots.slots[i + size].color = self.slots.brushes[self.slots.slots[i + size].mean]
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size ** 2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+                    flags[i // size][i % size] = False
+                    flags[i // size + 1][i % size] = False
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i + size].mean == 0:
+                    flag = True
+                    self.slots.slots[i + size].color = self.slots.slots[i].color
+                    self.slots.slots[i + size].mean = self.slots.slots[i].mean
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size ** 2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+
+    def PossibleDown(self):
+        size = 4
+        flag = True
+        while (flag):
+            flag = False
+            for i in range(size ** 2 - size - 1, -1, -1):
+                if self.slots.slots[i].mean == self.slots.slots[i + size].mean and self.slots.slots[i].mean != 0:
+                    return True
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i + size].mean == 0:
+                    return True
+        return False
+
+    def MoveRight(self):
+        size = 4
+        flag = True
+        flags = self.MakeFlags(size)
+        while (flag):
+            flag = False
+            for i in range(size ** 2):
+                if (i - 3) % 4 == 0:
+                    continue
+                if self.slots.slots[i].mean == self.slots.slots[i + 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i + 1) % size] and flags[i // size][i % size]:
+                    flag = True
+                    self.slots.slots[i + 1].mean = 2 * self.slots.slots[i + 1].mean
+                    self.slots.slots[i + 1].color = self.slots.brushes[self.slots.slots[i + 1].mean]
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size ** 2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+                    flags[i // size][i % size] = False
+                    flags[(i + 1) // size][(i + 1) % size] = False
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i + 1].mean == 0:
+                    flag = True
+                    self.slots.slots[i + 1].color = self.slots.slots[i].color
+                    self.slots.slots[i + 1].mean = self.slots.slots[i].mean
+                    self.slots.slots[i].mean = 0
+                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.empty_slots = []
+                    for j in range(size ** 2):
+                        if self.slots.slots[j].mean == 0:
+                            self.slots.empty_slots.append(self.slots.slots[j])
+
+    def PossibleRight(self):
+        size = 4
+        flag = True
+        while (flag):
+            flag = False
+            for i in range(size ** 2 - 1, -1, -1):
+                if (i - 3) % 4 == 0:
+                    continue
+                if self.slots.slots[i].mean == self.slots.slots[i + 1].mean and self.slots.slots[i].mean != 0:
+                    return True
+                elif self.slots.slots[i].mean != 0 and self.slots.slots[i + 1].mean == 0:
+                    return True
+        return False
     def draw_rect(self, painter, x, y, color, size):
-        painter.fillRect(x, y, size - 2, size - 2, color)
+        rect = QtCore.QRect(x, y, size - 2, size - 2)
+        painter.drawImage(rect, color)
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
 
         key = a0.key()
-
+        success_move = False
+        if self.is_game_over():
+            msgBox = QMessageBox()
+            msgBox.setText("YOU LOST!!")
+            msgBox.setWindowTitle("GG")
         if key == QtCore.Qt.Key_Left:
-            pass
+            if self.PossibleLeft():
+                self.MoveLeft()
+                success_move = True
 
         if key == QtCore.Qt.Key_Right:
-            pass
+            if self.PossibleRight():
+                self.MoveRight()
+                success_move = True
 
         if key == QtCore.Qt.Key_Up:
-            pass
+            if self.PossibleUp():
+                self.MoveUp()
+                success_move = True
 
         if key == QtCore.Qt.Key_Down:
-            pass
-
-        self.slots.add_slot()
+            if self.PossibleDown():
+                self.MoveDown()
+                success_move = True
+        if success_move:
+            self.slots.add_slot()
         self.update()
 
     def is_game_over(self):
-        pass
+        if (self.PossibleLeft() or self.PossibleUp() or self.PossibleDown() or self.PossibleRight()) == False:
+            return True
+        return False
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -112,10 +324,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.board = Board(self)
         self.setCentralWidget(self.board)
-        self.setGeometry(100, 100, 600, 400)
-
+        self.setGeometry(500, 50, 900, 900)
         self.show()
-
 
 if __name__ == "__main__":
     import sys
@@ -124,5 +334,3 @@ if __name__ == "__main__":
     MainWindow = MainWindow()
     MainWindow.show()
     sys.exit(app.exec_())
-
-
