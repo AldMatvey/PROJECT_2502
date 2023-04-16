@@ -4,6 +4,7 @@ from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QLabel, QApplication)
 from PyQt5.QtGui import QPixmap
+from PIL import Image, ImageFont, ImageDraw
 
 class Slot:
 
@@ -19,19 +20,19 @@ class Slots:
     def __init__(self, count, size):
 
         self.brushes = {
-            0: QtGui.QImage('Pics/empty.jpg'),
-            1: QtGui.QImage('Pics/obeme.jpeg'),
-            2: QtGui.QImage('Pics/2(another kasatkin).png'),
-            4: QtGui.QImage('Pics/4(spider_man).png'),
-            8: QtGui.QImage('Pics/8(kasatkin).png'),
-            16: QtGui.QImage('Pics/16(kozel).png'),
-            32: QtGui.QImage('Pics/32(mish).png'),
-            64: QtGui.QImage('Pics/64(chich).png'),
-            128: QtGui.QImage('Pics/128(bour).png'),
-            256: QtGui.QImage('Pics/256(stremich).png'),
-            512: QtGui.QImage('Pics/512(koval).png'),
-            1024: QtGui.QImage('Pics/1024(zhivotov).png'),
-            2048: QtGui.QImage('Pics/obeme.jpeg'),
+            0: QtGui.QImage('pics_2502/empty.jpg'),
+            1: QtGui.QImage('pics_2502/obeme.jpeg'),
+            2: QtGui.QImage('pics_2502/2(another kasatkin).png'),
+            4: QtGui.QImage('pics_2502/4(Dugin).png'),
+            8: QtGui.QImage('pics_2502/8(kasatkin).png'),
+            16: QtGui.QImage('pics_2502/16(kozel).png'),
+            32: QtGui.QImage('pics_2502/32(mish).png'),
+            64: QtGui.QImage('pics_2502/64(chich).png'),
+            128: QtGui.QImage('pics_2502/128(bour).png'),
+            256: QtGui.QImage('pics_2502/256(stremich).png'),
+            512: QtGui.QImage('pics_2502/512(koval).png'),
+            1024: QtGui.QImage('pics_2502/1024(zhivotov).png'),
+            2048: QtGui.QImage('pics_2502/obeme.jpeg'),
         }
 
         self.count = count
@@ -56,19 +57,14 @@ class Slots:
                                      self.empty_slots[num].x, self.empty_slots[num].y, mean = 2)
         self.empty_slots.pop(num)
 
-    def is_game_over(self):
-        pass
-
-
 class Board(QtWidgets.QFrame):
-
     def __init__(self, parent):
         super(Board, self).__init__(parent)
-
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
-        self.slots = Slots(4, 900)
+        self.slots = Slots(4, 600)
 
+    score = 0
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
 
         painter = QtGui.QPainter(self)
@@ -80,6 +76,20 @@ class Board(QtWidgets.QFrame):
         for slot in self.slots.slots:
             self.draw_rect(painter, rect.left() + slot.x * slot.size,
                            board_top + slot.y * slot.size, slot.color, slot.size)
+        painter.setBrush(QtGui.QColor(0xFFF8DC))
+        painter.setPen(QtCore.Qt.NoPen)
+        painter.drawRoundedRect(700, 15, 200, 100, 10.0, 10.0)
+        painter.setPen(QtGui.QPen(QtGui.QColor(0x776e65)))
+        painter.setFont(QtGui.QFont('Arial',9))
+        painter.drawText(QtCore.QRectF(700,5,200,50),"SCORE", QtGui.QTextOption(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter))
+        painter.setFont(QtGui.QFont('Arial', 22))
+        painter.drawText(QtCore.QRectF(700,45,200,70), str(self.score),
+                        QtGui.QTextOption(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter))
+
+
+
+
+
 
     def MakeFlags(self, size):
         flags_table = []
@@ -87,19 +97,6 @@ class Board(QtWidgets.QFrame):
             flags_table.append([True] * size)
         return flags_table
 
-    def DisplayField(self, field):
-        size = len(field)
-        for i in range(size):
-            for j in range(size):
-                if field[i][j] // 10 == 0:
-                    print(field[i][j], end="    ")
-                elif field[i][j] // 100 == 0:
-                    print(field[i][j], end="   ")
-                elif field[i][j] // 1000 == 0:
-                    print(field[i][j], end="  ")
-                else:
-                    print(field[i][j], end=" ")
-            print()
 
     def MoveUp(self):
         size = 4
@@ -110,6 +107,7 @@ class Board(QtWidgets.QFrame):
             for i in range(size, size ** 2):
                 if self.slots.slots[i].mean == self.slots.slots[i - size].mean and self.slots.slots[i].mean != 0 and flags[i // size - 1][i % size] and flags[i // size][i % size]:
                     flag = True
+                    self.score += 2 * self.slots.slots[i].mean
                     self.slots.slots[i - size].mean = 2 * self.slots.slots[i - size].mean
                     self.slots.slots[i - size].color = self.slots.brushes[self.slots.slots[i - size].mean]
                     self.slots.slots[i].mean = 0
@@ -122,7 +120,7 @@ class Board(QtWidgets.QFrame):
                     flags[i//size - 1][i % size] = False
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i - size].mean == 0:
                     flag = True
-                    self.slots.slots[ i - size].color = self.slots.slots[i].color
+                    self.slots.slots[i - size].color = self.slots.slots[i].color
                     self.slots.slots[i - size].mean = self.slots.slots[i].mean
                     self.slots.slots[i].mean = 0
                     self.slots.slots[i].color = self.slots.brushes[0]
@@ -155,6 +153,7 @@ class Board(QtWidgets.QFrame):
                     continue
                 if self.slots.slots[i].mean == self.slots.slots[i - 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i - 1) % size] and flags[i // size][i % size]:
                     flag = True
+                    self.score += 2 * self.slots.slots[i - 1].mean
                     self.slots.slots[i - 1].mean = 2 * self.slots.slots[i - 1].mean
                     self.slots.slots[i - 1].color = self.slots.brushes[self.slots.slots[i - 1].mean]
                     self.slots.slots[i].mean = 0
@@ -199,6 +198,7 @@ class Board(QtWidgets.QFrame):
             for i in range(size ** 2 - size - 1, -1, -1):
                 if self.slots.slots[i].mean == self.slots.slots[i + size].mean and self.slots.slots[i].mean != 0 and flags[i // size + 1][i % size] and flags[i // size][i % size]:
                     flag = True
+                    self.score += 2 * self.slots.slots[i + size].mean
                     self.slots.slots[i + size].mean = 2 * self.slots.slots[i + size].mean
                     self.slots.slots[i + size].color = self.slots.brushes[self.slots.slots[i + size].mean]
                     self.slots.slots[i].mean = 0
@@ -243,6 +243,7 @@ class Board(QtWidgets.QFrame):
                     continue
                 if self.slots.slots[i].mean == self.slots.slots[i + 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i + 1) % size] and flags[i // size][i % size]:
                     flag = True
+                    self.score += 2 * self.slots.slots[i + 1].mean
                     self.slots.slots[i + 1].mean = 2 * self.slots.slots[i + 1].mean
                     self.slots.slots[i + 1].color = self.slots.brushes[self.slots.slots[i + 1].mean]
                     self.slots.slots[i].mean = 0
@@ -286,9 +287,19 @@ class Board(QtWidgets.QFrame):
         key = a0.key()
         success_move = False
         if self.is_game_over():
-            msgBox = QMessageBox()
-            msgBox.setText("YOU LOST!!")
-            msgBox.setWindowTitle("GG")
+            img = Image.open('pics_2502/Game_over.png')
+            draw = ImageDraw.Draw(img)
+            font = ImageFont.truetype("ComicSansMS3.ttf", 25 )
+            draw.text((265, 202), str(self.score), (0, 0, 0), font = font)
+            img.save("pics_2502/Game_over_score.png")
+            picture_label = QLabel(MainWindow)
+            pixmap = QPixmap('pics_2502/Game_over_score.png')
+            pixmap4 = pixmap.scaled(MainWindow.geometry().height(), 1000, QtCore.Qt.KeepAspectRatio)
+            picture_label.setPixmap(pixmap4)
+            MainWindow.setCentralWidget(picture_label)
+
+
+
         if key == QtCore.Qt.Key_Left:
             if self.PossibleLeft():
                 self.MoveLeft()
@@ -308,23 +319,24 @@ class Board(QtWidgets.QFrame):
             if self.PossibleDown():
                 self.MoveDown()
                 success_move = True
+
         if success_move:
             self.slots.add_slot()
         self.update()
 
     def is_game_over(self):
-        if (self.PossibleLeft() or self.PossibleUp() or self.PossibleDown() or self.PossibleRight()) == False:
-            return True
-        return False
+        if (self.PossibleLeft() or self.PossibleUp() or self.PossibleDown() or self.PossibleRight()):
+            return False
+        return True
 
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-
         self.board = Board(self)
         self.setCentralWidget(self.board)
-        self.setGeometry(500, 50, 900, 900)
+        self.setGeometry(500, 50, 1000, 1000)
+        self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
         self.show()
 
 if __name__ == "__main__":
