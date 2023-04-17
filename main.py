@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QLabel, QApplication)
 from PyQt5.QtGui import QPixmap
 from PIL import Image, ImageFont, ImageDraw
+import webbrowser
 
 class Slot:
 
@@ -338,10 +339,24 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setGeometry(500, 50, 1000, 1000)
         self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
         self.show()
+        button = QtWidgets.QPushButton("Restart", self)
+        button.move(750, 150)
+        button.clicked.connect(self.restart)
+        button.show()
+
+    def restart(self):
+        self.board = Board(self)
+        self.setCentralWidget(self.board)
+        self.setGeometry(500, 50, 1000, 1000)
+        self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
+        self.show()
+        button = QtWidgets.QPushButton("Restart", self)
+        button.move(750, 150)
+        button.clicked.connect(self.restart)
+        button.show()
 
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = MainWindow()
     MainWindow.show()
