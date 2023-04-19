@@ -2,8 +2,10 @@ import random
 
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QLabel, QApplication)
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
+                             QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider, QLabel)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QPainter, QPen, QBrush, QColor
 from PIL import Image, ImageFont, ImageDraw
 import webbrowser
 
@@ -46,24 +48,27 @@ class Slots:
         self.add_slot()
 
     def add_slot(self):
-        if len(self.empty_slots) == 0:
-            return
+        two_or_four = random.randint(0, 10)
+        if two_or_four > 8:
+            newslot = 4
+        else:
+            newslot = 2
         if len(self.empty_slots) == 1:
             num = 0
         else:
             num = random.randrange(0, len(self.empty_slots) - 1)
         for i in range(len(self.slots)):
             if self.slots[i].x == self.empty_slots[num].x and self.slots[i].y == self.empty_slots[num].y:
-                self.slots[i] = Slot(self.size // self.count, self.brushes[2],
-                                     self.empty_slots[num].x, self.empty_slots[num].y, mean = 2)
+                self.slots[i] = Slot(self.size // self.count, self.brushes[newslot],
+                                     self.empty_slots[num].x, self.empty_slots[num].y, mean = newslot)
         self.empty_slots.pop(num)
 
 class Board(QtWidgets.QFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, diam):
         super(Board, self).__init__(parent)
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
-        self.slots = Slots(4, 600)
+        self.slots = Slots(diam, 840)
 
     score = 0
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
@@ -79,12 +84,12 @@ class Board(QtWidgets.QFrame):
                            board_top + slot.y * slot.size, slot.color, slot.size)
         painter.setBrush(QtGui.QColor(0xFFF8DC))
         painter.setPen(QtCore.Qt.NoPen)
-        painter.drawRoundedRect(700, 15, 200, 100, 10.0, 10.0)
+        painter.drawRoundedRect(900, 15, 200, 100, 10.0, 10.0)
         painter.setPen(QtGui.QPen(QtGui.QColor(0x776e65)))
         painter.setFont(QtGui.QFont('Arial',9))
-        painter.drawText(QtCore.QRectF(700,5,200,50),"SCORE", QtGui.QTextOption(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter))
+        painter.drawText(QtCore.QRectF(900,5,200,50),"SCORE", QtGui.QTextOption(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter))
         painter.setFont(QtGui.QFont('Arial', 22))
-        painter.drawText(QtCore.QRectF(700,45,200,70), str(self.score),
+        painter.drawText(QtCore.QRectF(900,45,200,70), str(self.score),
                         QtGui.QTextOption(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter))
 
 
@@ -100,7 +105,7 @@ class Board(QtWidgets.QFrame):
 
 
     def MoveUp(self):
-        size = 4
+        size = self.slots.count
         flag = True
         flags = self.MakeFlags(size)
         while (flag):
@@ -132,7 +137,7 @@ class Board(QtWidgets.QFrame):
 
     def PossibleUp(self):
         flag = True
-        size = 4
+        size = self.slots.count
         while (flag):
             flag = False
             for i in range(size, size ** 2):
@@ -143,13 +148,13 @@ class Board(QtWidgets.QFrame):
         return False
 
     def MoveLeft(self):
-        size = 4
+        size = self.slots.count
         flag = True
         flags = self.MakeFlags(size)
         while (flag):
             flag = False
             for i in range(size ** 2):
-                if i % 4 == 0:
+                if i % size == 0:
                     continue
                 if self.slots.slots[i].mean == self.slots.slots[i - 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i - 1) % size] and flags[i // size][i % size]:
                     flag = True
@@ -175,12 +180,12 @@ class Board(QtWidgets.QFrame):
                             self.slots.empty_slots.append(self.slots.slots[j])
 
     def PossibleLeft(self):
-        size = 4
+        size = self.slots.count
         flag = True
         while (flag):
             flag = False
             for i in range(size ** 2 - 1, -1, -1):
-                if i % 4 == 0:
+                if i % size == 0:
                     continue
                 if self.slots.slots[i].mean == self.slots.slots[i - 1].mean and self.slots.slots[i].mean != 0:
                     return True
@@ -189,7 +194,7 @@ class Board(QtWidgets.QFrame):
         return False
 
     def MoveDown(self):
-        size = 4
+        size = self.slots.count
         flag = True
         flags = self.MakeFlags(size)
         while (flag):
@@ -219,7 +224,7 @@ class Board(QtWidgets.QFrame):
                             self.slots.empty_slots.append(self.slots.slots[j])
 
     def PossibleDown(self):
-        size = 4
+        size = self.slots.count
         flag = True
         while (flag):
             flag = False
@@ -231,13 +236,13 @@ class Board(QtWidgets.QFrame):
         return False
 
     def MoveRight(self):
-        size = 4
+        size = self.slots.count
         flag = True
         flags = self.MakeFlags(size)
         while (flag):
             flag = False
             for i in range(size ** 2 - 1, -1, -1):
-                if (i - 3) % 4 == 0:
+                if (i - size + 1) % size == 0:
                     continue
                 if self.slots.slots[i].mean == self.slots.slots[i + 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i + 1) % size] and flags[i // size][i % size]:
                     flag = True
@@ -263,12 +268,12 @@ class Board(QtWidgets.QFrame):
                             self.slots.empty_slots.append(self.slots.slots[j])
 
     def PossibleRight(self):
-        size = 4
+        size = self.slots.count
         flag = True
         while (flag):
             flag = False
             for i in range(size ** 2 - 1, -1, -1):
-                if (i - 3) % 4 == 0:
+                if (i - size + 1) % size == 0:
                     continue
                 if self.slots.slots[i].mean == self.slots.slots[i + 1].mean and self.slots.slots[i].mean != 0:
                     return True
@@ -293,7 +298,8 @@ class Board(QtWidgets.QFrame):
             pixmap = QPixmap('pics_2502/Game_over_score.png')
             pixmap4 = pixmap.scaled(MainWindow.geometry().height(), 1000, QtCore.Qt.KeepAspectRatio)
             picture_label.setPixmap(pixmap4)
-            MainWindow.setCentralWidget(picture_label)
+            picture_label.resize(pixmap4.width(), pixmap4.height())
+            picture_label.show()
 
 
 
@@ -330,38 +336,142 @@ class Board(QtWidgets.QFrame):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.board = Board(self)
+        self.background_pick = QPixmap('pics_2502/grey.png')
+        self.background = QLabel(self)
+        self.background.setPixmap(self.background_pick)
+        self.background.resize(840, 1000)
+        self.background.move(0, 0)
+        self.background.show()
+        self.board_diam = 4
+        self.board = Board(self, self.board_diam)
         self.setCentralWidget(self.board)
-        self.setGeometry(500, 50, 1000, 1000)
+        self.setGeometry(0, 0, 1200, 840)
         self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
         self.show()
-        button = QtWidgets.QPushButton('Restart', self)
-        button.setGeometry(700, 15, 200, 100)
-        button.move(700, 150)
-        button.setStyleSheet("QPushButton {background-color:rgb(255, 248, 220); color: rgb(119, 110, 101); border-radius:10;}")
-        button.setFont(QtGui.QFont('Arial',14))
-        button.clicked.connect(self.restart)
-        button.show()
+        self.restart_button = QtWidgets.QPushButton('Restart', self)
+        self.slider = QSlider(QtCore.Qt.Horizontal, self)
+        self.restart_button.setGeometry(900, 15, 200, 100)
+        self.restart_button.move(900, 150)
+        self.restart_button.setStyleSheet("QPushButton {background-color:rgb(255, 248, 220); color: rgb(119, 110, 101); border-radius:10;}")
+        self.restart_button.setFont(QtGui.QFont('Arial', 14))
+        self.restart_button.clicked.connect(self.restart)
+        self.restart_button.show()
+        self.slider.setGeometry(900, 300, 200, 30)
+        self.slider.setMaximum(3)
+        self.slider.setStyleSheet("""
+                    QSlider{
+                        background: #EFEFEF;
+                    }
+                    QSlider::groove:horizontal {  
+                        height: 10px;
+                        margin: 0px;
+                        border-radius: 5px;
+                        background-color: rgb(119, 110, 101);
+                    }
+                    QSlider::handle:horizontal {
+                        background: #fff;
+                        border: 1px solid #B0AEB1;
+                        width: 17px;
+                        margin: -5px 0; 
+                        border-radius: 8px;
+                    }
+                    QSlider::sub-page:qlineargradient {
+                        background-color:rgb(255, 248, 220);;
+                        border-radius: 5px;
+                    }
+                """)
+        self.slider.show()
+        self.text_field_4 = QLabel('<h1 style="color: rgb(119, 110, 101);">4x4', self)
+        self.text_field_4.setGeometry(897, 320, 30, 20)
+        self.text_field_4.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_4.show()
+        self.text_field_5 = QLabel('<h1 style="color: rgb(119, 110, 101);">5x5', self)
+        self.text_field_5.setGeometry(958, 320, 30, 20)
+        self.text_field_5.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_5.show()
+        self.text_field_6 = QLabel('<h1 style="color: rgb(119, 110, 101);">6x6', self)
+        self.text_field_6.setGeometry(1019, 320, 30, 20)
+        self.text_field_6.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_6.show()
+        self.text_field_7 = QLabel('<h1 style="color: rgb(119, 110, 101);">7x7', self)
+        self.text_field_7.setGeometry(1080, 320, 30, 20)
+        self.text_field_7.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_7.show()
+
+
+
+
 
     def restart(self):
-        self.board = Board(self)
+        self.background_pick = QPixmap('pics_2502/grey.png')
+        self.background = QLabel(self)
+        self.background.setPixmap(self.background_pick)
+        self.background.resize(840, 1000)
+        self.background.move(0, 0)
+        self.background.show()
+        self.board = Board(self, self.board_diam)
         self.setCentralWidget(self.board)
-        self.setGeometry(500, 50, 1000, 1000)
         self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
-        button = QtWidgets.QPushButton('Restart', self)
-        button.setGeometry(700, 15, 200, 100)
-        button.move(700, 150)
-        button.setStyleSheet(
+        self.show()
+        self.restart_button = QtWidgets.QPushButton('Restart', self)
+        self.slider = QSlider(QtCore.Qt.Horizontal, self)
+        self.restart_button.setGeometry(900, 15, 200, 100)
+        self.restart_button.move(900, 150)
+        self.restart_button.setStyleSheet(
             "QPushButton {background-color:rgb(255, 248, 220); color: rgb(119, 110, 101); border-radius:10;}")
-        button.setFont(QtGui.QFont('Arial', 14))
-        button.clicked.connect(self.restart)
-        button.show()
+        self.restart_button.setFont(QtGui.QFont('Arial', 14))
+        self.restart_button.clicked.connect(self.restart)
+        self.restart_button.show()
+        self.slider.setGeometry(900, 300, 200, 30)
+        self.slider.setMaximum(3)
+        self.slider.setStyleSheet("""
+                            QSlider{
+                                background: #EFEFEF;
+                            }
+                            QSlider::groove:horizontal {  
+                                height: 10px;
+                                margin: 0px;
+                                border-radius: 5px;
+                                background-color: rgb(119, 110, 101);
+                            }
+                            QSlider::handle:horizontal {
+                                background: #fff;
+                                border: 1px solid #B0AEB1;
+                                width: 17px;
+                                margin: -5px 0; 
+                                border-radius: 8px;
+                            }
+                            QSlider::sub-page:qlineargradient {
+                                background-color:rgb(255, 248, 220);;
+                                border-radius: 5px;
+                            }
+                        """)
+        self.slider.setSliderPosition(self.board_diam - 4)
+        self.slider.show()
+        self.text_field_4 = QLabel('<h1 style="color: rgb(119, 110, 101);">4x4', self)
+        self.text_field_4.setGeometry(897, 320, 30, 20)
+        self.text_field_4.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_4.show()
+        self.text_field_5 = QLabel('<h1 style="color: rgb(119, 110, 101);">5x5', self)
+        self.text_field_5.setGeometry(958, 320, 30, 20)
+        self.text_field_5.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_5.show()
+        self.text_field_6 = QLabel('<h1 style="color: rgb(119, 110, 101);">6x6', self)
+        self.text_field_6.setGeometry(1019, 320, 30, 20)
+        self.text_field_6.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_6.show()
+        self.text_field_7 = QLabel('<h1 style="color: rgb(119, 110, 101);">7x7', self)
+        self.text_field_7.setGeometry(1080, 320, 30, 20)
+        self.text_field_7.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field_7.show()
+        self.slider.valueChanged.connect(self.resize)
 
-
+    def resize(self, value):
+        self.board_diam = value + 4
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = MainWindow()
+    MainWindow.restart()
     MainWindow.show()
     sys.exit(app.exec_())
