@@ -11,9 +11,9 @@ import webbrowser
 
 class Slot:
 
-    def __init__(self, size, color, x, y, mean=0):
+    def __init__(self, size, image, x, y, mean=0):
         self.size = size
-        self.color = color
+        self.image = image
         self.x = x
         self.y = y
         self.mean = mean
@@ -22,7 +22,7 @@ class Slot:
 class Slots:
     def __init__(self, count, size):
 
-        self.brushes = {
+        self.images = {
             0: QtGui.QImage('pics_2502/empty.jpg'),
             1: QtGui.QImage('pics_2502/obeme.jpeg'),
             2: QtGui.QImage('pics_2502/2(another kasatkin).png'),
@@ -40,9 +40,9 @@ class Slots:
 
         self.count = count
         self.size = size
-        self.slots = [Slot(self.size // self.count, self.brushes[0], i % self.count, i // self.count)
+        self.slots = [Slot(self.size // self.count, self.images[0], i % self.count, i // self.count)
                       for i in range(self.count ** 2)]
-        self.empty_slots = [Slot(size // count, self.brushes[0], i % self.count, i // self.count)
+        self.empty_slots = [Slot(size // count, self.images[0], i % self.count, i // self.count)
                             for i in range(self.count ** 2)]
         self.add_slot()
         self.add_slot()
@@ -59,7 +59,7 @@ class Slots:
             num = random.randrange(0, len(self.empty_slots) - 1)
         for i in range(len(self.slots)):
             if self.slots[i].x == self.empty_slots[num].x and self.slots[i].y == self.empty_slots[num].y:
-                self.slots[i] = Slot(self.size // self.count, self.brushes[newslot],
+                self.slots[i] = Slot(self.size // self.count, self.images[newslot],
                                      self.empty_slots[num].x, self.empty_slots[num].y, mean = newslot)
         self.empty_slots.pop(num)
 
@@ -71,6 +71,7 @@ class Board(QtWidgets.QFrame):
         self.slots = Slots(diam, 840)
 
     score = 0
+
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
 
         painter = QtGui.QPainter(self)
@@ -81,28 +82,22 @@ class Board(QtWidgets.QFrame):
 
         for slot in self.slots.slots:
             self.draw_rect(painter, rect.left() + slot.x * slot.size,
-                           board_top + slot.y * slot.size, slot.color, slot.size)
+                           board_top + slot.y * slot.size, slot.image, slot.size)
         painter.setBrush(QtGui.QColor(0xFFF8DC))
         painter.setPen(QtCore.Qt.NoPen)
         painter.drawRoundedRect(900, 15, 200, 100, 10.0, 10.0)
         painter.setPen(QtGui.QPen(QtGui.QColor(0x776e65)))
-        painter.setFont(QtGui.QFont('Arial',9))
-        painter.drawText(QtCore.QRectF(900,5,200,50),"SCORE", QtGui.QTextOption(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter))
+        painter.setFont(QtGui.QFont('Arial', 9))
+        painter.drawText(QtCore.QRectF(900, 5, 200, 50), "SCORE", QtGui.QTextOption(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter))
         painter.setFont(QtGui.QFont('Arial', 22))
-        painter.drawText(QtCore.QRectF(900,45,200,70), str(self.score),
+        painter.drawText(QtCore.QRectF(900, 45, 200, 70), str(self.score),
                         QtGui.QTextOption(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter))
-
-
-
-
-
 
     def MakeFlags(self, size):
         flags_table = []
         for i in range(size):
             flags_table.append([True] * size)
         return flags_table
-
 
     def MoveUp(self):
         size = self.slots.count
@@ -115,9 +110,9 @@ class Board(QtWidgets.QFrame):
                     flag = True
                     self.score += 2 * self.slots.slots[i].mean
                     self.slots.slots[i - size].mean = 2 * self.slots.slots[i - size].mean
-                    self.slots.slots[i - size].color = self.slots.brushes[self.slots.slots[i - size].mean]
+                    self.slots.slots[i - size].image = self.slots.images[self.slots.slots[i - size].mean]
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size**2):
                         if self.slots.slots[j].mean == 0:
@@ -125,10 +120,10 @@ class Board(QtWidgets.QFrame):
                     flags[i//size - 1][i % size] = False
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i - size].mean == 0:
                     flag = True
-                    self.slots.slots[i - size].color = self.slots.slots[i].color
+                    self.slots.slots[i - size].image = self.slots.slots[i].image
                     self.slots.slots[i - size].mean = self.slots.slots[i].mean
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
@@ -160,9 +155,9 @@ class Board(QtWidgets.QFrame):
                     flag = True
                     self.score += 2 * self.slots.slots[i - 1].mean
                     self.slots.slots[i - 1].mean = 2 * self.slots.slots[i - 1].mean
-                    self.slots.slots[i - 1].color = self.slots.brushes[self.slots.slots[i - 1].mean]
+                    self.slots.slots[i - 1].image = self.slots.images[self.slots.slots[i - 1].mean]
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
@@ -170,10 +165,10 @@ class Board(QtWidgets.QFrame):
                     flags[(i - 1) // size][(i - 1) % size] = False
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i - 1].mean == 0:
                     flag = True
-                    self.slots.slots[i - 1].color = self.slots.slots[i].color
+                    self.slots.slots[i - 1].image = self.slots.slots[i].image
                     self.slots.slots[i - 1].mean = self.slots.slots[i].mean
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
@@ -204,9 +199,9 @@ class Board(QtWidgets.QFrame):
                     flag = True
                     self.score += 2 * self.slots.slots[i + size].mean
                     self.slots.slots[i + size].mean = 2 * self.slots.slots[i + size].mean
-                    self.slots.slots[i + size].color = self.slots.brushes[self.slots.slots[i + size].mean]
+                    self.slots.slots[i + size].image = self.slots.images[self.slots.slots[i + size].mean]
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
@@ -214,10 +209,10 @@ class Board(QtWidgets.QFrame):
                     flags[i // size + 1][i % size] = False
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i + size].mean == 0:
                     flag = True
-                    self.slots.slots[i + size].color = self.slots.slots[i].color
+                    self.slots.slots[i + size].image = self.slots.slots[i].image
                     self.slots.slots[i + size].mean = self.slots.slots[i].mean
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
@@ -248,9 +243,9 @@ class Board(QtWidgets.QFrame):
                     flag = True
                     self.score += 2 * self.slots.slots[i + 1].mean
                     self.slots.slots[i + 1].mean = 2 * self.slots.slots[i + 1].mean
-                    self.slots.slots[i + 1].color = self.slots.brushes[self.slots.slots[i + 1].mean]
+                    self.slots.slots[i + 1].image = self.slots.images[self.slots.slots[i + 1].mean]
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
@@ -258,10 +253,10 @@ class Board(QtWidgets.QFrame):
                     flags[(i + 1) // size][(i + 1) % size] = False
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i + 1].mean == 0:
                     flag = True
-                    self.slots.slots[i + 1].color = self.slots.slots[i].color
+                    self.slots.slots[i + 1].image = self.slots.slots[i].image
                     self.slots.slots[i + 1].mean = self.slots.slots[i].mean
                     self.slots.slots[i].mean = 0
-                    self.slots.slots[i].color = self.slots.brushes[0]
+                    self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
@@ -280,9 +275,9 @@ class Board(QtWidgets.QFrame):
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i + 1].mean == 0:
                     return True
         return False
-    def draw_rect(self, painter, x, y, color, size):
+    def draw_rect(self, painter, x, y, image, size):
         rect = QtCore.QRect(x, y, size - 2, size - 2)
-        painter.drawImage(rect, color)
+        painter.drawImage(rect, image)
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
 
@@ -300,8 +295,6 @@ class Board(QtWidgets.QFrame):
             picture_label.setPixmap(pixmap4)
             picture_label.resize(pixmap4.width(), pixmap4.height())
             picture_label.show()
-
-
 
         if key == QtCore.Qt.Key_Left:
             if self.PossibleLeft():
@@ -468,6 +461,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def resize(self, value):
         self.board_diam = value + 4
+
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
