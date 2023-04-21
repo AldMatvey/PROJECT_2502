@@ -9,6 +9,7 @@ from PyQt5.QtGui import QPixmap, QPainter, QPen, QBrush, QColor
 from PIL import Image, ImageFont, ImageDraw
 import webbrowser
 
+
 class Slot:
 
     def __init__(self, size, image, x, y, mean=0):
@@ -23,19 +24,21 @@ class Slots:
     def __init__(self, count, size):
 
         self.images = {
-            0: QtGui.QImage('pics_2502/empty.jpg'),
+            0: QtGui.QImage('pics_2502/bg.png'),
             1: QtGui.QImage('pics_2502/obeme.jpeg'),
-            2: QtGui.QImage('pics_2502/2(another kasatkin).png'),
-            4: QtGui.QImage('pics_2502/4(Dugin).png'),
-            8: QtGui.QImage('pics_2502/8(kasatkin).png'),
-            16: QtGui.QImage('pics_2502/16(kozel).png'),
-            32: QtGui.QImage('pics_2502/32(mish).png'),
-            64: QtGui.QImage('pics_2502/64(chich).png'),
-            128: QtGui.QImage('pics_2502/128(bour).png'),
-            256: QtGui.QImage('pics_2502/256(stremich).png'),
-            512: QtGui.QImage('pics_2502/512(koval).png'),
-            1024: QtGui.QImage('pics_2502/1024(zhivotov).png'),
-            2048: QtGui.QImage('pics_2502/obeme.jpeg'),
+            2: QtGui.QImage('pics_2502/2.png'),
+            4: QtGui.QImage('pics_2502/4.png'),
+            8: QtGui.QImage('pics_2502/8.png'),
+            16: QtGui.QImage('pics_2502/16.png'),
+            32: QtGui.QImage('pics_2502/32.png'),
+            64: QtGui.QImage('pics_2502/64.png'),
+            128: QtGui.QImage('pics_2502/128.png'),
+            256: QtGui.QImage('pics_2502/256.png'),
+            512: QtGui.QImage('pics_2502/512.png'),
+            1024: QtGui.QImage('pics_2502/1024.png'),
+            2048: QtGui.QImage('pics_2502/2048.png'),
+            4096: QtGui.QImage('pics_2502/4096.png'),
+            8192: QtGui.QImage('pics_2502/8192.png'),
         }
 
         self.count = count
@@ -60,8 +63,9 @@ class Slots:
         for i in range(len(self.slots)):
             if self.slots[i].x == self.empty_slots[num].x and self.slots[i].y == self.empty_slots[num].y:
                 self.slots[i] = Slot(self.size // self.count, self.images[newslot],
-                                     self.empty_slots[num].x, self.empty_slots[num].y, mean = newslot)
+                                     self.empty_slots[num].x, self.empty_slots[num].y, mean=newslot)
         self.empty_slots.pop(num)
+
 
 class Board(QtWidgets.QFrame):
     def __init__(self, parent, diam):
@@ -83,15 +87,16 @@ class Board(QtWidgets.QFrame):
         for slot in self.slots.slots:
             self.draw_rect(painter, rect.left() + slot.x * slot.size,
                            board_top + slot.y * slot.size, slot.image, slot.size)
-        painter.setBrush(QtGui.QColor(0xFFF8DC))
+        painter.setBrush(QtGui.QColor(0x282828))
         painter.setPen(QtCore.Qt.NoPen)
         painter.drawRoundedRect(900, 15, 200, 100, 10.0, 10.0)
-        painter.setPen(QtGui.QPen(QtGui.QColor(0x776e65)))
+        painter.setPen(QtGui.QPen(QtGui.QColor(0xC83246)))
         painter.setFont(QtGui.QFont('Arial', 9))
-        painter.drawText(QtCore.QRectF(900, 5, 200, 50), "SCORE", QtGui.QTextOption(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter))
+        painter.drawText(QtCore.QRectF(900, 5, 200, 50), "SCORE",
+                         QtGui.QTextOption(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter))
         painter.setFont(QtGui.QFont('Arial', 22))
         painter.drawText(QtCore.QRectF(900, 45, 200, 70), str(self.score),
-                        QtGui.QTextOption(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter))
+                         QtGui.QTextOption(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter))
 
     def MakeFlags(self, size):
         flags_table = []
@@ -106,7 +111,8 @@ class Board(QtWidgets.QFrame):
         while (flag):
             flag = False
             for i in range(size, size ** 2):
-                if self.slots.slots[i].mean == self.slots.slots[i - size].mean and self.slots.slots[i].mean != 0 and flags[i // size - 1][i % size] and flags[i // size][i % size]:
+                if self.slots.slots[i].mean == self.slots.slots[i - size].mean and self.slots.slots[i].mean != 0 and \
+                        flags[i // size - 1][i % size] and flags[i // size][i % size]:
                     flag = True
                     self.score += 2 * self.slots.slots[i].mean
                     self.slots.slots[i - size].mean = 2 * self.slots.slots[i - size].mean
@@ -114,10 +120,10 @@ class Board(QtWidgets.QFrame):
                     self.slots.slots[i].mean = 0
                     self.slots.slots[i].image = self.slots.images[0]
                     self.slots.empty_slots = []
-                    for j in range(size**2):
+                    for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
                             self.slots.empty_slots.append(self.slots.slots[j])
-                    flags[i//size - 1][i % size] = False
+                    flags[i // size - 1][i % size] = False
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i - size].mean == 0:
                     flag = True
                     self.slots.slots[i - size].image = self.slots.slots[i].image
@@ -128,7 +134,6 @@ class Board(QtWidgets.QFrame):
                     for j in range(size ** 2):
                         if self.slots.slots[j].mean == 0:
                             self.slots.empty_slots.append(self.slots.slots[j])
-
 
     def PossibleUp(self):
         flag = True
@@ -151,7 +156,8 @@ class Board(QtWidgets.QFrame):
             for i in range(size ** 2):
                 if i % size == 0:
                     continue
-                if self.slots.slots[i].mean == self.slots.slots[i - 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i - 1) % size] and flags[i // size][i % size]:
+                if self.slots.slots[i].mean == self.slots.slots[i - 1].mean and self.slots.slots[i].mean != 0 and \
+                        flags[(i - 1) // size][(i - 1) % size] and flags[i // size][i % size]:
                     flag = True
                     self.score += 2 * self.slots.slots[i - 1].mean
                     self.slots.slots[i - 1].mean = 2 * self.slots.slots[i - 1].mean
@@ -195,7 +201,8 @@ class Board(QtWidgets.QFrame):
         while (flag):
             flag = False
             for i in range(size ** 2 - size - 1, -1, -1):
-                if self.slots.slots[i].mean == self.slots.slots[i + size].mean and self.slots.slots[i].mean != 0 and flags[i // size + 1][i % size] and flags[i // size][i % size]:
+                if self.slots.slots[i].mean == self.slots.slots[i + size].mean and self.slots.slots[i].mean != 0 and \
+                        flags[i // size + 1][i % size] and flags[i // size][i % size]:
                     flag = True
                     self.score += 2 * self.slots.slots[i + size].mean
                     self.slots.slots[i + size].mean = 2 * self.slots.slots[i + size].mean
@@ -239,7 +246,8 @@ class Board(QtWidgets.QFrame):
             for i in range(size ** 2 - 1, -1, -1):
                 if (i - size + 1) % size == 0:
                     continue
-                if self.slots.slots[i].mean == self.slots.slots[i + 1].mean and self.slots.slots[i].mean != 0 and flags[(i - 1) // size][(i + 1) % size] and flags[i // size][i % size]:
+                if self.slots.slots[i].mean == self.slots.slots[i + 1].mean and self.slots.slots[i].mean != 0 and \
+                        flags[(i - 1) // size][(i + 1) % size] and flags[i // size][i % size]:
                     flag = True
                     self.score += 2 * self.slots.slots[i + 1].mean
                     self.slots.slots[i + 1].mean = 2 * self.slots.slots[i + 1].mean
@@ -275,6 +283,7 @@ class Board(QtWidgets.QFrame):
                 elif self.slots.slots[i].mean != 0 and self.slots.slots[i + 1].mean == 0:
                     return True
         return False
+
     def draw_rect(self, painter, x, y, image, size):
         rect = QtCore.QRect(x, y, size - 2, size - 2)
         painter.drawImage(rect, image)
@@ -284,13 +293,13 @@ class Board(QtWidgets.QFrame):
         key = a0.key()
         success_move = False
         if self.is_game_over():
-            img = Image.open('pics_2502/Game_over.png')
+            img = Image.open('pics_2502/game_over_alt.png')
             draw = ImageDraw.Draw(img)
-            font = ImageFont.truetype("ComicSansMS3.ttf", 25 )
-            draw.text((265, 202), str(self.score), (0, 0, 0), font = font)
-            img.save("pics_2502/Game_over_score.png")
+            font = ImageFont.truetype("ComicSansMS3.ttf", 25)
+            draw.text((380, 300), str(self.score), (0, 0, 0), font=font)
+            img.save("pics_2502/game_over_alt_score.png")
             picture_label = QLabel(MainWindow)
-            pixmap = QPixmap('pics_2502/Game_over_score.png')
+            pixmap = QPixmap('pics_2502/game_over_alt_score.png')
             pixmap4 = pixmap.scaled(MainWindow.geometry().height(), 1000, QtCore.Qt.KeepAspectRatio)
             picture_label.setPixmap(pixmap4)
             picture_label.resize(pixmap4.width(), pixmap4.height())
@@ -329,7 +338,8 @@ class Board(QtWidgets.QFrame):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.background_pick = QPixmap('pics_2502/grey.png')
+        self.setStyleSheet("background-color: rgb(50, 50, 50)")
+        self.background_pick = QPixmap('pics_2502/bg_bg.png')
         self.background = QLabel(self)
         self.background.setPixmap(self.background_pick)
         self.background.resize(840, 1000)
@@ -345,7 +355,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.slider = QSlider(QtCore.Qt.Horizontal, self)
         self.restart_button.setGeometry(900, 15, 200, 100)
         self.restart_button.move(900, 150)
-        self.restart_button.setStyleSheet("QPushButton {background-color:rgb(255, 248, 220); color: rgb(119, 110, 101); border-radius:10;}")
+        self.restart_button.setStyleSheet(
+            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(119, 110, 101); border-radius:10;}")
         self.restart_button.setFont(QtGui.QFont('Arial', 14))
         self.restart_button.clicked.connect(self.restart)
         self.restart_button.show()
@@ -353,7 +364,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.slider.setMaximum(3)
         self.slider.setStyleSheet("""
                     QSlider{
-                        background: #EFEFEF;
+                        background: #323232;
                     }
                     QSlider::groove:horizontal {  
                         height: 10px;
@@ -369,7 +380,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         border-radius: 8px;
                     }
                     QSlider::sub-page:qlineargradient {
-                        background-color:rgb(255, 248, 220);;
+                        background-color:rgb(200, 50, 70);
                         border-radius: 5px;
                     }
                 """)
@@ -391,12 +402,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.text_field_7.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
         self.text_field_7.show()
 
-
-
-
-
     def restart(self):
-        self.background_pick = QPixmap('pics_2502/grey.png')
+        self.background_pick = QPixmap('pics_2502/bg_bg.png')
         self.background = QLabel(self)
         self.background.setPixmap(self.background_pick)
         self.background.resize(840, 1000)
@@ -411,17 +418,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.restart_button.setGeometry(900, 15, 200, 100)
         self.restart_button.move(900, 150)
         self.restart_button.setStyleSheet(
-            "QPushButton {background-color:rgb(255, 248, 220); color: rgb(119, 110, 101); border-radius:10;}")
+            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
         self.restart_button.setFont(QtGui.QFont('Arial', 14))
         self.restart_button.clicked.connect(self.restart)
         self.restart_button.show()
-        self.slider.setGeometry(900, 300, 200, 30)
+        self.slider.setGeometry(900, 300, 200, 20)
         self.slider.setMaximum(3)
         self.slider.setStyleSheet("""
                             QSlider{
-                                background: #EFEFEF;
+                                background: #323232;
                             }
-                            QSlider::groove:horizontal {  
+                            QSlider::groove:horizontal {
                                 height: 10px;
                                 margin: 0px;
                                 border-radius: 5px;
@@ -435,7 +442,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                 border-radius: 8px;
                             }
                             QSlider::sub-page:qlineargradient {
-                                background-color:rgb(255, 248, 220);;
+                                background-color:rgb(200, 50, 70);;
                                 border-radius: 5px;
                             }
                         """)
@@ -465,6 +472,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = MainWindow()
     MainWindow.restart()
