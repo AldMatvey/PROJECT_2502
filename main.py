@@ -1,3 +1,15 @@
+
+import random
+
+from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
+                             QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider, QLabel)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QPainter, QPen, QBrush, QColor
+from PIL import Image, ImageFont, ImageDraw
+import webbrowser
+
 class Slot:
 
     def __init__(self, size, image, x, y, mean=0):
