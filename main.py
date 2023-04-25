@@ -4,11 +4,12 @@ import random
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
-                             QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider, QLabel)
-from PyQt5.QtCore import Qt
+                             QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider, QLabel, QLineEdit, QTableWidget, QTableWidgetItem)
+from PyQt5.QtCore import Qt, QVariant
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QBrush, QColor
 from PIL import Image, ImageFont, ImageDraw
 import webbrowser
+import os
 
 class Slot:
 
@@ -71,10 +72,9 @@ class Board(QtWidgets.QFrame):
     def __init__(self, parent, diam):
         super(Board, self).__init__(parent)
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
-
+        self.score = 0
         self.slots = Slots(diam, 840)
 
-    score = 0
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
 
@@ -294,9 +294,22 @@ class Board(QtWidgets.QFrame):
         success_move = False
         if self.is_game_over():
             img = Image.open('pics_2502/game_over_alt.png')
+            # self.name_edit = QLineEdit(MainWindow)
+            # self.name_edit.setGeometry(300, 300, 280, 60)
+            # self.name_edit.move(900, 760)
+            # edit.setStyleSheet("color: red;")
+            # edit.show()
+            MainWindow.name_edit.show()
+            MainWindow.add_name_button.show()
             draw = ImageDraw.Draw(img)
-            font = ImageFont.truetype("ComicSansMS3.ttf", 25)
-            draw.text((380, 300), str(self.score), (0, 0, 0), font=font)
+            font = ImageFont.truetype("chiller_regular.ttf", 35)
+            draw.text((380, 262), str(self.score), (200, 50, 70), font=font)
+            prom = (list(map(int, dict(MainWindow.data).keys())))
+            prom.append(self.score)
+            prom = sorted(prom, reverse = True)
+            print(prom)
+            print(prom.index(self.score) + 1)
+            draw.text((425, 396), str((prom.index(self.score) + 1)), (200, 50, 70), font=font)
             img.save("pics_2502/game_over_alt_score.png")
             picture_label = QLabel(MainWindow)
             pixmap = QPixmap('pics_2502/game_over_alt_score.png')
@@ -331,7 +344,7 @@ class Board(QtWidgets.QFrame):
 
     def is_game_over(self):
         if (self.PossibleLeft() or self.PossibleUp() or self.PossibleDown() or self.PossibleRight()):
-            return False
+            return True
         return True
 
 
@@ -351,6 +364,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setGeometry(0, 0, 1200, 840)
         self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
         self.show()
+        self.lines_count = sum(1 for line in open('leaderboard.txt'))
+        self.name_edit = QLineEdit(self)
+        self.name_edit.setGeometry(300, 300, 280, 60)
+        self.name_edit.move(900, 760)
+        self.name_edit.setStyleSheet("color: red;")
+        self.add_name_button = QtWidgets.QPushButton("Name", self)
+        self.add_name_button.setGeometry(900, 15, 200, 100)
+        self.add_name_button.move(400, 150)
+        self.add_name_button.setStyleSheet(
+            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
+        self.add_name_button.setFont(QtGui.QFont('Arial', 14))
+
         self.restart_button = QtWidgets.QPushButton('Restart', self)
         self.slider = QSlider(QtCore.Qt.Horizontal, self)
         self.restart_button.setGeometry(900, 15, 200, 100)
@@ -384,6 +409,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         border-radius: 5px;
                     }
                 """)
+
         self.slider.show()
         self.text_field_4 = QLabel('<h1 style="color: rgb(119, 110, 101);">4x4', self)
         self.text_field_4.setGeometry(897, 320, 30, 20)
@@ -401,9 +427,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.text_field_7.setGeometry(1080, 320, 30, 20)
         self.text_field_7.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
         self.text_field_7.show()
-
+        self.file = open("leaderboard.txt")
+        numbers = []
+        partis = []
+        prom_data = []
+        self.data = dict()
+        for i in range(min(5, self.lines_count, len(self.data))):
+            prom_data.append(list(self.file.readline().split()))
+            prom_data[i][0] = int(prom_data[i][0])
+            numbers.append(prom_data[i][0])
+            partis.append(prom_data[i][1])
+        self.data.update(prom_data)
+        self.data = sorted(self.data.items(), reverse = True)
+        print(self.data)
     def restart(self):
         self.background_pick = QPixmap('pics_2502/bg_bg.png')
+        self.lines_count = sum(1 for line in open('leaderboard.txt'))
         self.background = QLabel(self)
         self.background.setPixmap(self.background_pick)
         self.background.resize(840, 1000)
@@ -413,8 +452,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.board)
         self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
         self.show()
+        self.name_edit = QLineEdit(self)
+        self.name_edit.setGeometry(300, 300, 280, 60)
+        self.name_edit.move(900, 760)
+        self.name_edit.setStyleSheet("color: red;")
+        self.add_name_button = QtWidgets.QPushButton("Add", self)
+        self.add_name_button.setGeometry(80, 15, 110, 45)
+        self.add_name_button.move(900, 700)
+        self.add_name_button.setStyleSheet(
+            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
+        self.add_name_button.setFont(QtGui.QFont('Arial', 14))
+        self.add_name_button.clicked.connect(self.rewrite_leaderboard)
+
+
+
         self.restart_button = QtWidgets.QPushButton('Restart', self)
-        self.slider = QSlider(QtCore.Qt.Horizontal, self)
         self.restart_button.setGeometry(900, 15, 200, 100)
         self.restart_button.move(900, 150)
         self.restart_button.setStyleSheet(
@@ -422,6 +474,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.restart_button.setFont(QtGui.QFont('Arial', 14))
         self.restart_button.clicked.connect(self.restart)
         self.restart_button.show()
+        self.slider = QSlider(QtCore.Qt.Horizontal, self)
         self.slider.setGeometry(900, 300, 200, 20)
         self.slider.setMaximum(3)
         self.slider.setStyleSheet("""
@@ -465,6 +518,61 @@ class MainWindow(QtWidgets.QMainWindow):
         self.text_field_7.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
         self.text_field_7.show()
         self.slider.valueChanged.connect(self.resize)
+
+        self.file = open("leaderboard.txt", 'r+')
+        numbers = []
+        partis = []
+        prom_data = []
+        self.data = dict()
+        for i in range(min(5, self.lines_count)):
+            prom_data.append(list(self.file.readline().split()))
+            prom_data[i][0] = int(prom_data[i][0])
+            if numbers.count(prom_data[i][0]) == 1:
+                partis[numbers.index(prom_data[i][0])] = prom_data[i][1]
+                break
+            partis.append(prom_data[i][1])
+            numbers.append(prom_data[i][0])
+        self.data.update(prom_data)
+        self.data = sorted(self.data.items(), reverse=True)
+
+        self.leaderboard_table = QTableWidget(self)
+        self.leaderboard_table.setColumnCount(2)
+        self.leaderboard_table.setRowCount(5)
+
+        self.leaderboard_table.setHorizontalHeaderLabels(["Name", "Record"])
+
+        self.leaderboard_table.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
+        self.leaderboard_table.horizontalHeaderItem(0).setData(Qt.BackgroundRole, QVariant((QBrush(Qt.red))))
+        self.leaderboard_table.horizontalHeaderItem(1).setData(Qt.BackgroundRole, QVariant((QtGui.QColor(200, 100, 139))))
+        self.leaderboard_table.horizontalHeaderItem(1).setTextAlignment(Qt.AlignHCenter)
+
+        for i in range(min(5, self.lines_count)):
+            self.leaderboard_table.setItem(i, 0, QTableWidgetItem(str(self.data[i][1])))
+            self.leaderboard_table.setItem(i, 1, QTableWidgetItem(str(self.data[i][0])))
+        self.leaderboard_table.setColumnWidth(0, 100)
+        self.leaderboard_table.setColumnWidth(1, 75)
+        self.leaderboard_table.setGeometry(100, 200, 200, 265)
+        self.leaderboard_table.move(900, 400)
+        self.leaderboard_table.setStyleSheet("color: blue;background-color: yellow; gridline-color: black;")
+        self.leaderboard_table.show()
+        print(len(self.data))
+
+    def get_key(self, value):
+        for k, v in self.data.items():
+            if v == value:
+                return k
+    def rewrite_leaderboard(self):
+        self.data = dict(self.data)
+        inverse_data = dict((v, k) for k, v in self.data.items())
+        if self.name_edit.text() in inverse_data.keys():
+            inverse_data[self.name_edit.text()] = max(self.board.score, inverse_data[self.name_edit.text()])
+            self.data = dict((v, k) for k, v in inverse_data.items())
+        else:
+            self.data[self.board.score] = self.name_edit.text()
+        self.file = open('leaderboard.txt', 'w')
+        with open('leaderboard.txt', 'w') as out:
+            for key, val in self.data.items():
+                out.write('{} {}\n'.format(key, val))
 
     def resize(self, value):
         self.board_diam = value + 4
