@@ -344,7 +344,7 @@ class Board(QtWidgets.QFrame):
 
     def is_game_over(self):
         if (self.PossibleLeft() or self.PossibleUp() or self.PossibleDown() or self.PossibleRight()):
-            return True
+            return False
         return True
 
 
@@ -432,14 +432,23 @@ class MainWindow(QtWidgets.QMainWindow):
         partis = []
         prom_data = []
         self.data = dict()
-        for i in range(min(5, self.lines_count, len(self.data))):
+        self.file = open("leaderboard.txt", 'r+')
+        numbers = []
+        partis = []
+        prom_data = []
+        self.data = dict()
+        for i in range(min(5, self.lines_count)):
             prom_data.append(list(self.file.readline().split()))
-            prom_data[i][0] = int(prom_data[i][0])
+            if numbers.count(prom_data[i][0]) == 1:
+                partis[numbers.index(prom_data[i][0])] = [prom_data[i][1], prom_data[i][2]]
+                break
+            partis.append([prom_data[i][1], prom_data[i][2]])
             numbers.append(prom_data[i][0])
-            partis.append(prom_data[i][1])
+            prom_data[i][1] = [prom_data[i][1], prom_data[i][2]]
+            prom_data[i].pop()
+            print(prom_data)
         self.data.update(prom_data)
-        self.data = sorted(self.data.items(), reverse = True)
-        print(self.data)
+        self.data = sorted(self.data.values(), reverse=True)
     def restart(self):
         self.background_pick = QPixmap('pics_2502/bg_bg.png')
         self.lines_count = sum(1 for line in open('leaderboard.txt'))
@@ -455,7 +464,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.name_edit = QLineEdit(self)
         self.name_edit.setGeometry(300, 300, 280, 60)
         self.name_edit.move(900, 760)
-        self.name_edit.setStyleSheet("color: red;")
+        self.name_edit.setStyleSheet("QLineEdit{color: rgb(200, 50, 70); background: rgb(40, 40, 40);}")
         self.add_name_button = QtWidgets.QPushButton("Add", self)
         self.add_name_button.setGeometry(80, 15, 110, 45)
         self.add_name_button.move(900, 700)
@@ -526,52 +535,81 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data = dict()
         for i in range(min(5, self.lines_count)):
             prom_data.append(list(self.file.readline().split()))
-            prom_data[i][0] = int(prom_data[i][0])
+            if(len(prom_data) == 1 and (prom_data[i]) == 2):
+                nam = prom_data[1][0]
+                sz = prom_data[1][0]
+                prom_data.pop()
+                prom_data[i].append(nam)
+                prom_data[i].append(sz)
             if numbers.count(prom_data[i][0]) == 1:
-                partis[numbers.index(prom_data[i][0])] = prom_data[i][1]
+                partis[numbers.index(prom_data[i][0])] = [prom_data[i][1], prom_data[i][2]]
                 break
-            partis.append(prom_data[i][1])
+            partis.append([prom_data[i][1], prom_data[i][2]])
             numbers.append(prom_data[i][0])
+            prom_data[i][1] = [prom_data[i][1], prom_data[i][2]]
+            prom_data[i].pop()
+            print(prom_data)
         self.data.update(prom_data)
         self.data = sorted(self.data.items(), reverse=True)
 
         self.leaderboard_table = QTableWidget(self)
-        self.leaderboard_table.setColumnCount(2)
+        self.leaderboard_table.setColumnCount(3)
         self.leaderboard_table.setRowCount(5)
-
-        self.leaderboard_table.setHorizontalHeaderLabels(["Name", "Record"])
-
+        self.leaderboard_table.setHorizontalHeaderLabels(["  Name          ", "    Record       ", "     Size  "])
+        self.leaderboard_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.leaderboard_table.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
-        self.leaderboard_table.horizontalHeaderItem(0).setData(Qt.BackgroundRole, QVariant((QBrush(Qt.red))))
-        self.leaderboard_table.horizontalHeaderItem(1).setData(Qt.BackgroundRole, QVariant((QtGui.QColor(200, 100, 139))))
+        self.leaderboard_table.horizontalHeaderItem(0).setData(Qt.ForegroundRole, QVariant((QtGui.QColor(200, 50, 70))))
+        self.leaderboard_table.horizontalHeaderItem(1).setData(Qt.ForegroundRole, QVariant((QtGui.QColor(200, 50, 70))))
         self.leaderboard_table.horizontalHeaderItem(1).setTextAlignment(Qt.AlignHCenter)
-
+        self.leaderboard_table.horizontalHeaderItem(2).setData(Qt.ForegroundRole, QVariant((QtGui.QColor(200, 50, 70))))
+        self.leaderboard_table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         for i in range(min(5, self.lines_count)):
-            self.leaderboard_table.setItem(i, 0, QTableWidgetItem(str(self.data[i][1])))
+            self.leaderboard_table.setItem(i, 0, QTableWidgetItem(str((self.data[i][1][0]))))
             self.leaderboard_table.setItem(i, 1, QTableWidgetItem(str(self.data[i][0])))
-        self.leaderboard_table.setColumnWidth(0, 100)
-        self.leaderboard_table.setColumnWidth(1, 75)
+            self.leaderboard_table.setItem(i, 2, QTableWidgetItem(str((self.data[i][1][1]))))
         self.leaderboard_table.setGeometry(100, 200, 200, 265)
         self.leaderboard_table.move(900, 400)
-        self.leaderboard_table.setStyleSheet("color: blue;background-color: yellow; gridline-color: black;")
+        self.leaderboard_table.setStyleSheet("""
+                    QTableWidget{
+                        background-color: #222;
+                        color: rgb(200, 50, 70);
+                    }
+                    QWidget > QHeaderView{
+                    background-color: #333}"
+
+                """)
         self.leaderboard_table.show()
         print(len(self.data))
 
-    def get_key(self, value):
-        for k, v in self.data.items():
-            if v == value:
-                return k
     def rewrite_leaderboard(self):
         self.data = dict(self.data)
-        inverse_data = dict((v, k) for k, v in self.data.items())
+        inverse_data = dict((k, v) for k, v in self.data.items())
         if self.name_edit.text() in inverse_data.keys():
             inverse_data[self.name_edit.text()] = max(self.board.score, inverse_data[self.name_edit.text()])
             self.data = dict((v, k) for k, v in inverse_data.items())
         else:
-            self.data[self.board.score] = self.name_edit.text()
+            self.data[self.board.score] = (self.name_edit.text(), self.board.slots.count)
         self.file = open('leaderboard.txt', 'w')
         with open('leaderboard.txt', 'w') as out:
             for key, val in self.data.items():
+                val = str(val)
+                print(val)
+                while("[" in val):
+                    val = val.replace("[", "")
+                while ("]" in val):
+                    val = val.replace("]", "")
+                while ("(" in val):
+                    val = val.replace("(", "")
+                while (")" in val):
+                    val = val.replace(")", "")
+                while ("," in val):
+                    val = val.replace(",", "")
+                while ("/" in val):
+                    val = val.replace("/", "")
+                while ("'" in val):
+                    val = val.replace("'", "")
+                while ('"' in val):
+                    val = val.replace('"', "")
                 out.write('{} {}\n'.format(key, val))
 
     def resize(self, value):
