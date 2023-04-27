@@ -1,4 +1,3 @@
-
 import random
 
 from PyQt5 import QtGui, QtCore, QtWidgets
@@ -307,8 +306,6 @@ class Board(QtWidgets.QFrame):
             prom = (list(map(int, dict(MainWindow.data).keys())))
             prom.append(self.score)
             prom = sorted(prom, reverse = True)
-            print(prom)
-            print(prom.index(self.score) + 1)
             draw.text((425, 396), str((prom.index(self.score) + 1)), (200, 50, 70), font=font)
             img.save("pics_2502/game_over_alt_score.png")
             picture_label = QLabel(MainWindow)
@@ -347,90 +344,28 @@ class Board(QtWidgets.QFrame):
             return False
         return True
 
-
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, diam=4):
         super(MainWindow, self).__init__()
-        self.setStyleSheet("background-color: rgb(50, 50, 50)")
+        self.board_diam = diam
         self.background_pick = QPixmap('pics_2502/bg_bg.png')
         self.background = QLabel(self)
-        self.background.setPixmap(self.background_pick)
-        self.background.resize(840, 1000)
-        self.background.move(0, 0)
-        self.background.show()
-        self.board_diam = 4
         self.board = Board(self, self.board_diam)
-        self.setCentralWidget(self.board)
-        self.setGeometry(0, 0, 1200, 840)
         self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
-        self.show()
+        self.SetBackground(diam)
         self.lines_count = sum(1 for line in open('leaderboard.txt'))
         self.name_edit = QLineEdit(self)
-        self.name_edit.setGeometry(300, 300, 280, 60)
-        self.name_edit.move(900, 760)
-        self.name_edit.setStyleSheet("color: red;")
         self.add_name_button = QtWidgets.QPushButton("Name", self)
-        self.add_name_button.setGeometry(900, 15, 200, 100)
-        self.add_name_button.move(400, 150)
-        self.add_name_button.setStyleSheet(
-            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
-        self.add_name_button.setFont(QtGui.QFont('Arial', 14))
+        self.SetNameEdit()
 
         self.restart_button = QtWidgets.QPushButton('Restart', self)
-        self.slider = QSlider(QtCore.Qt.Horizontal, self)
-        self.restart_button.setGeometry(900, 15, 200, 100)
-        self.restart_button.move(900, 150)
-        self.restart_button.setStyleSheet(
-            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(119, 110, 101); border-radius:10;}")
-        self.restart_button.setFont(QtGui.QFont('Arial', 14))
-        self.restart_button.clicked.connect(self.restart)
-        self.restart_button.show()
-        self.slider.setGeometry(900, 300, 200, 30)
-        self.slider.setMaximum(3)
-        self.slider.setStyleSheet("""
-                    QSlider{
-                        background: #323232;
-                    }
-                    QSlider::groove:horizontal {  
-                        height: 10px;
-                        margin: 0px;
-                        border-radius: 5px;
-                        background-color: rgb(119, 110, 101);
-                    }
-                    QSlider::handle:horizontal {
-                        background: #fff;
-                        border: 1px solid #B0AEB1;
-                        width: 17px;
-                        margin: -5px 0; 
-                        border-radius: 8px;
-                    }
-                    QSlider::sub-page:qlineargradient {
-                        background-color:rgb(200, 50, 70);
-                        border-radius: 5px;
-                    }
-                """)
+        self.SetRestartButton()
 
-        self.slider.show()
-        self.text_field_4 = QLabel('<h1 style="color: rgb(119, 110, 101);">4x4', self)
-        self.text_field_4.setGeometry(897, 320, 30, 20)
-        self.text_field_4.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_4.show()
-        self.text_field_5 = QLabel('<h1 style="color: rgb(119, 110, 101);">5x5', self)
-        self.text_field_5.setGeometry(958, 320, 30, 20)
-        self.text_field_5.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_5.show()
-        self.text_field_6 = QLabel('<h1 style="color: rgb(119, 110, 101);">6x6', self)
-        self.text_field_6.setGeometry(1019, 320, 30, 20)
-        self.text_field_6.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_6.show()
-        self.text_field_7 = QLabel('<h1 style="color: rgb(119, 110, 101);">7x7', self)
-        self.text_field_7.setGeometry(1080, 320, 30, 20)
-        self.text_field_7.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_7.show()
-        self.file = open("leaderboard.txt")
-        numbers = []
-        partis = []
-        prom_data = []
+        self.slider = QSlider(QtCore.Qt.Horizontal, self)
+        self.SetSlider(diam - 4)
+        self.text_field = QLabel(f'', self)
+        for i in range(4):
+            self.SetTextField(i)
         self.data = dict()
         self.file = open("leaderboard.txt", 'r+')
         numbers = []
@@ -446,87 +381,18 @@ class MainWindow(QtWidgets.QMainWindow):
             numbers.append(prom_data[i][0])
             prom_data[i][1] = [prom_data[i][1], prom_data[i][2]]
             prom_data[i].pop()
-            print(prom_data)
         self.data.update(prom_data)
         self.data = sorted(self.data.values(), reverse=True)
-    def restart(self):
-        self.background_pick = QPixmap('pics_2502/bg_bg.png')
-        self.lines_count = sum(1 for line in open('leaderboard.txt'))
-        self.background = QLabel(self)
-        self.background.setPixmap(self.background_pick)
-        self.background.resize(840, 1000)
-        self.background.move(0, 0)
-        self.background.show()
-        self.board = Board(self, self.board_diam)
-        self.setCentralWidget(self.board)
-        self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
-        self.show()
-        self.name_edit = QLineEdit(self)
-        self.name_edit.setGeometry(300, 300, 280, 60)
-        self.name_edit.move(900, 760)
-        self.name_edit.setStyleSheet("QLineEdit{color: rgb(200, 50, 70); background: rgb(40, 40, 40);}")
-        self.add_name_button = QtWidgets.QPushButton("Add", self)
-        self.add_name_button.setGeometry(80, 15, 110, 45)
-        self.add_name_button.move(900, 700)
-        self.add_name_button.setStyleSheet(
-            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
-        self.add_name_button.setFont(QtGui.QFont('Arial', 14))
-        self.add_name_button.clicked.connect(self.rewrite_leaderboard)
+    def restart(self, diam=4):
+        self.SetBackground(self.slider.value() + 4)
+        self.SetNameEdit()
+        self.SetRestartButton()
 
-
-
-        self.restart_button = QtWidgets.QPushButton('Restart', self)
-        self.restart_button.setGeometry(900, 15, 200, 100)
-        self.restart_button.move(900, 150)
-        self.restart_button.setStyleSheet(
-            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
-        self.restart_button.setFont(QtGui.QFont('Arial', 14))
-        self.restart_button.clicked.connect(self.restart)
-        self.restart_button.show()
         self.slider = QSlider(QtCore.Qt.Horizontal, self)
-        self.slider.setGeometry(900, 300, 200, 20)
-        self.slider.setMaximum(3)
-        self.slider.setStyleSheet("""
-                            QSlider{
-                                background: #323232;
-                            }
-                            QSlider::groove:horizontal {
-                                height: 10px;
-                                margin: 0px;
-                                border-radius: 5px;
-                                background-color: rgb(119, 110, 101);
-                            }
-                            QSlider::handle:horizontal {
-                                background: #fff;
-                                border: 1px solid #B0AEB1;
-                                width: 17px;
-                                margin: -5px 0; 
-                                border-radius: 8px;
-                            }
-                            QSlider::sub-page:qlineargradient {
-                                background-color:rgb(200, 50, 70);;
-                                border-radius: 5px;
-                            }
-                        """)
-        self.slider.setSliderPosition(self.board_diam - 4)
-        self.slider.show()
-        self.text_field_4 = QLabel('<h1 style="color: rgb(119, 110, 101);">4x4', self)
-        self.text_field_4.setGeometry(897, 320, 30, 20)
-        self.text_field_4.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_4.show()
-        self.text_field_5 = QLabel('<h1 style="color: rgb(119, 110, 101);">5x5', self)
-        self.text_field_5.setGeometry(958, 320, 30, 20)
-        self.text_field_5.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_5.show()
-        self.text_field_6 = QLabel('<h1 style="color: rgb(119, 110, 101);">6x6', self)
-        self.text_field_6.setGeometry(1019, 320, 30, 20)
-        self.text_field_6.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_6.show()
-        self.text_field_7 = QLabel('<h1 style="color: rgb(119, 110, 101);">7x7', self)
-        self.text_field_7.setGeometry(1080, 320, 30, 20)
-        self.text_field_7.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
-        self.text_field_7.show()
-        self.slider.valueChanged.connect(self.resize)
+        self.SetSlider(self.slider.value())
+        self.text_field = QLabel(f'', self)
+        for i in range(4):
+            self.SetTextField(i)
 
         self.file = open("leaderboard.txt", 'r+')
         numbers = []
@@ -548,7 +414,6 @@ class MainWindow(QtWidgets.QMainWindow):
             numbers.append(prom_data[i][0])
             prom_data[i][1] = [prom_data[i][1], prom_data[i][2]]
             prom_data[i].pop()
-            print(prom_data)
         self.data.update(prom_data)
         self.data = sorted(self.data.items(), reverse=True)
 
@@ -579,8 +444,74 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 """)
         self.leaderboard_table.show()
-        print(len(self.data))
+    def SetBackground(self, board_diam=4):
+        self.setStyleSheet("background-color: rgb(50, 50, 50)")
+        self.background.setPixmap(self.background_pick)
+        self.background.resize(840, 1000)
+        self.background.move(0, 0)
+        self.background.show()
+        self.board_diam = board_diam
+        self.board = Board(self, self.board_diam)
+        self.setCentralWidget(self.board)
+        self.setGeometry(0, 0, 1200, 840)
+        self.scoreLabel = QtCore.QRectF(1000, 1000, 1200, 1000)
+        self.show()
+    def SetNameEdit(self):
+        self.name_edit = QLineEdit(self)
+        self.name_edit.setGeometry(300, 300, 280, 60)
+        self.name_edit.move(900, 760)
+        self.name_edit.setStyleSheet("color: red;")
+        self.add_name_button = QtWidgets.QPushButton("Name", self)
+        self.add_name_button.setGeometry(900, 15, 200, 100)
+        self.add_name_button.move(400, 150)
+        self.add_name_button.setStyleSheet(
+            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
+        self.add_name_button.setFont(QtGui.QFont('Arial', 14))
 
+    def SetRestartButton(self):
+        self.restart_button = QtWidgets.QPushButton('Restart', self)
+        self.restart_button.setGeometry(900, 15, 200, 100)
+        self.restart_button.move(900, 150)
+        self.restart_button.setStyleSheet(
+            "QPushButton {background-color:rgb(40, 40, 40); color: rgb(200, 50, 70); border-radius:10;}")
+        self.restart_button.setFont(QtGui.QFont('Arial', 14))
+        self.restart_button.clicked.connect(self.restart)
+        self.restart_button.show()
+
+    def SetSlider(self, diam):
+        self.slider = QSlider(QtCore.Qt.Horizontal, self)
+        self.slider.setGeometry(900, 300, 200, 10)
+        self.slider.setMaximum(3)
+        self.slider.setStyleSheet("""
+                            QSlider{
+                                background: #323232;
+                            }
+                            QSlider::groove:horizontal {  
+                                height: 10px;
+                                margin: 0px;
+                                border-radius: 5px;
+                                background-color: rgb(119, 110, 101);
+                            }
+                            QSlider::handle:horizontal {
+                                background: #fff;
+                                border: 1px solid #B0AEB1;
+                                width: 17px;
+                                margin: -5px 0; 
+                                border-radius: 8px;
+                            }
+                            QSlider::sub-page:qlineargradient {
+                                background-color:rgb(200, 50, 70);
+                                border-radius: 5px;
+                            }
+                        """)
+        self.slider.setSliderPosition(self.board_diam - 4)
+        self.slider.show()
+
+    def SetTextField(self, n):
+        self.text_field = QLabel(f'<h1 style="color: rgb(119, 110, 101);">{n + 4}x{n + 4}', self)
+        self.text_field.setGeometry(n * 61 + 897, 320, 30, 20)
+        self.text_field.setFont(QtGui.QFont("Times", 6, QtGui.QFont.Bold))
+        self.text_field.show()
     def rewrite_leaderboard(self):
         self.data = dict(self.data)
         inverse_data = dict((k, v) for k, v in self.data.items())
@@ -593,7 +524,6 @@ class MainWindow(QtWidgets.QMainWindow):
         with open('leaderboard.txt', 'w') as out:
             for key, val in self.data.items():
                 val = str(val)
-                print(val)
                 while("[" in val):
                     val = val.replace("[", "")
                 while ("]" in val):
