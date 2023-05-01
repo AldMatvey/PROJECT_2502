@@ -377,7 +377,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.leaderboard_table = QTableWidget(self)
         self.leaderboard_table.setColumnCount(2)
         self.leaderboard_table.setRowCount(6)
-        self.leaderboard_table.setHorizontalHeaderLabels(["Name", "Record "])
+        self.leaderboard_table.setHorizontalHeaderLabels(["Name        ", "Record"])
         self.leaderboard_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.leaderboard_table.verticalHeader().setSectionResizeMode(1)
         self.leaderboard_table.horizontalHeaderItem(0).setTextAlignment(Qt.AlignHCenter)
@@ -395,7 +395,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         color: rgb(200, 50, 70);
                     }
                     QWidget > QHeaderView{
-                    background-color: #333}"
+                    background-color: rgb(22, 22, 22)}"
 
                 """)
         self.leaderboard_table.show()
@@ -520,8 +520,8 @@ class Leaderboard:
     def write_to_file(self):
         self.setData()
         name = self.name_field.text()
-        if len(name) > 12:
-            print("Your name can't be longer than 12 symbols!")
+        if len(name) > 11:
+            print("Your name can't be longer than 11 symbols!")
             return
         if name.count(" ") > 0:
             print("You can't use space symbol in your name!")
