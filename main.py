@@ -337,7 +337,7 @@ class Board(QtWidgets.QFrame):
 
     def is_game_over(self):
         if (self.PossibleLeft() or self.PossibleUp() or self.PossibleDown() or self.PossibleRight()):
-            return True
+            return False
         return True
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -376,9 +376,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def setTable(self):
         self.leaderboard_table = QTableWidget(self)
         self.leaderboard_table.setColumnCount(2)
-        self.leaderboard_table.setRowCount(5)
-        self.leaderboard_table.setHorizontalHeaderLabels(["Name ", " Record "])
-        # self.leaderboard_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.leaderboard_table.setRowCount(6)
+        self.leaderboard_table.setHorizontalHeaderLabels(["Name", "Record "])
+        self.leaderboard_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.leaderboard_table.verticalHeader().setSectionResizeMode(0)
         self.leaderboard_table.horizontalHeaderItem(0).setTextAlignment(Qt.AlignHCenter)
         self.leaderboard_table.horizontalHeaderItem(0).setData(Qt.ForegroundRole, QVariant((QtGui.QColor(200, 50, 70))))
         self.leaderboard_table.horizontalHeaderItem(1).setData(Qt.ForegroundRole, QVariant((QtGui.QColor(200, 50, 70))))
@@ -486,12 +487,12 @@ class Leaderboard:
 
     def write_to_table(self):
         self.file = open(self.filename)
-        for i in range(5):
+        for i in range(6):
             self.leaderboard.setItem(i, 0, QTableWidgetItem())
             self.leaderboard.setItem(i, 1, QTableWidgetItem())
         self.lines_count = sum(1 for line in open(self.filename))
         self.file.seek(0)
-        for i in range(min(5, self.lines_count)):
+        for i in range(min(6, self.lines_count)):
             name, points = self.file.readline().split()
             self.leaderboard.setItem(i, 0, QTableWidgetItem(name))
             self.leaderboard.setItem(i, 1, QTableWidgetItem(points))
@@ -519,8 +520,8 @@ class Leaderboard:
     def write_to_file(self):
         self.setData()
         name = self.name_field.text()
-        if len(name) > 10:
-            print("Your name can't be longer than 10 symbols!")
+        if len(name) > 12:
+            print("Your name can't be longer than 12 symbols!")
             return
         if name.count(" ") > 0:
             print("You can't use space symbol in your name!")
