@@ -379,7 +379,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.leaderboard_table.setRowCount(6)
         self.leaderboard_table.setHorizontalHeaderLabels(["Name", "Record "])
         self.leaderboard_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        self.leaderboard_table.verticalHeader().setSectionResizeMode(0)
+        self.leaderboard_table.verticalHeader().setSectionResizeMode(1)
         self.leaderboard_table.horizontalHeaderItem(0).setTextAlignment(Qt.AlignHCenter)
         self.leaderboard_table.horizontalHeaderItem(0).setData(Qt.ForegroundRole, QVariant((QtGui.QColor(200, 50, 70))))
         self.leaderboard_table.horizontalHeaderItem(1).setData(Qt.ForegroundRole, QVariant((QtGui.QColor(200, 50, 70))))
